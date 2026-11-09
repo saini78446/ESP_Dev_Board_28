@@ -1,0 +1,17 @@
+# Secrets and runtime data: never commit these
+secrets.h
+*.local
+notif_store.php
+notif_store.php.lock
+
+# Build output
+build/
+*.bin
+*.elf
+
+# Editors / OS
+.vscode/
+.idea/
+*.bak
+.DS_Store
+Thumbs.db
