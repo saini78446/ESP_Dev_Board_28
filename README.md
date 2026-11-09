@@ -2,7 +2,7 @@
 
 A desk clock for the ESP32 and a 2.8" ST7789 TFT. **India (IST)** is the big hero time, **UK (GMT/BST)** sits underneath in a compact card, and a **bell lights up red** when another system pushes a notification to a tiny PHP endpoint ("Teams message not replied", "new email", and so on).
 
-![Clock screen](docs/images/clock.jpeg)
+![Clock screen](IMAGE_B.jpeg)
 
 ## Features
 
@@ -33,10 +33,12 @@ Tested with: Arduino-ESP32 core `<fill in>`, TFT_eSPI `<fill in>`.
 ## Repo layout
 
 ```
-firmware/EspDevClock_Colored/EspDevClock_Colored.ino   the sketch
-config/User_Setup.h                                    TFT_eSPI setup for this display
-server/notifications.php                               push/poll endpoint
-docs/images/                                           screenshots
+EspDevClock_Colored.ino   the sketch
+User_Setup.h              TFT_eSPI setup for this display
+notifications.php         push/poll endpoint (upload to your web host)
+IMAGE_B.jpeg              screenshot of the working clock
+IMAGE_A_INVERTED.jpeg     screenshot of the inverted-colour bug (see Challenges)
+README.md  LICENSE  .gitignore
 ```
 
 ## Quick start
@@ -44,20 +46,21 @@ docs/images/                                           screenshots
 ### 1. Display setup (TFT_eSPI)
 
 1. Install **TFT_eSPI** from the Arduino Library Manager.
-2. Copy `config/User_Setup.h` over the library's `User_Setup.h` (or point `User_Setup_Select.h` at it).
+2. Copy `User_Setup.h` from this repo over the library's `User_Setup.h` (or point `User_Setup_Select.h` at it).
 3. Make sure the font defines are present. Without them the screen shows only lines and no text:
    `LOAD_GLCD`, `LOAD_FONT2`, `LOAD_FONT4`, `LOAD_FONT6`, `LOAD_FONT7`, `LOAD_FONT8`.
 
 ### 2. Notification server (any PHP host, HTTPS)
 
-1. Upload `server/notifications.php`.
+1. Upload `notifications.php` to your web host.
 2. Change `WRITE_KEY` and `READ_KEY` to long random strings (`openssl rand -hex 24`).
 3. Test it: `curl "https://YOUR_DOMAIN/notifications.php?a=poll&key=READ_KEY"` should print `0`.
 
 ### 3. Firmware
 
-1. Open the `.ino` and edit the credentials block near the top: your WiFi list and `NOTIF_URL` with the **read** key.
-2. Select your ESP32 board and upload.
+1. Put `EspDevClock_Colored.ino` in a folder named `EspDevClock_Colored` (the Arduino IDE requires the folder name to match the sketch name). Cloning the repo under that name also works.
+2. Open the `.ino` and edit the credentials block near the top: your WiFi list and `NOTIF_URL` with the **read** key.
+3. Select your ESP32 board and upload.
 
 ## Sending notifications
 
@@ -112,7 +115,9 @@ A dev log of what went wrong and how it was fixed.
 The display was initialised and the colour fills worked, but all text was missing. TFT_eSPI silently skips any font that is not enabled in `User_Setup.h`. Fix: enable `LOAD_GLCD`, `LOAD_FONT2/4/6/7/8`.
 
 **2. Colours looked like a negative image.**
-White background, cyan text showing red, amber showing blue. The setup file defined both `TFT_INVERSION_ON` and `TFT_INVERSION_OFF`, and the sketch also called `invertDisplay(true)`. Fix: remove both defines, and set inversion explicitly in the sketch with one `INVERT_DISPLAY` constant. See `docs/images/inverted-colors-bug.jpeg`.
+White background, cyan text showing red, amber showing blue. The setup file defined both `TFT_INVERSION_ON` and `TFT_INVERSION_OFF`, and the sketch also called `invertDisplay(true)`. Fix: remove both defines, and set inversion explicitly in the sketch with one `INVERT_DISPLAY` constant. See `IMAGE_A_INVERTED.jpeg`:
+
+![Inverted colours bug](IMAGE_A_INVERTED.jpeg)
 
 **3. Two time zones with daylight saving.**
 Running two local zones on one chip is awkward. Fix: keep the system clock in UTC, then set a POSIX TZ string (`GMT0BST,M3.5.0/1,M10.5.0/2` for the UK, `IST-5:30` for India) around each conversion.
